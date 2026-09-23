@@ -23,5 +23,6 @@ router.use('/catalog', require('./catalog.routes'));
 router.use('/calendar', require('./calendar.routes'));
 router.use('/model', require('./model.routes'));
 router.use('/change-notifications', require('./changeNotifications.routes'));
+router.use('/', require('./compatibility.routes'));
 
 module.exports = router;

@@ -1,0 +1,14 @@
+'use strict';
+const {Router}=require('express');
+const c=require('../controllers/compatibilityController');
+const {authenticate}=require('../middleware/authenticate');
+const {authorize,ROLES}=require('../middleware/authorize');
+const router=Router();
+const staff=authorize(ROLES.ADMIN,ROLES.SCHEDULER,ROLES.DEPARTMENT_COORDINATOR,ROLES.LAB_MANAGER);
+router.get('/master-data/terms',authenticate,c.masterData); router.get('/master-data/slots',authenticate,c.masterData); router.get('/master-data/courses',authenticate,c.masterData); router.get('/master-data/sections',authenticate,c.masterData);
+router.get('/schedule/drafts/:draftId/allocations',authenticate,c.draftAllocations);
+router.get('/requirements',authenticate,c.listRequirements); router.post('/requirements',authenticate,staff,c.createRequirement); router.patch('/requirements/:id',authenticate,staff,c.updateRequirement); router.delete('/requirements/:id',authenticate,staff,c.deleteRequirement);
+router.get('/instructor-assignments',authenticate,c.assignments); router.post('/instructor-assignments',authenticate,staff,c.createAssignment); router.delete('/instructor-assignments/:sectionId/:requirementId/:instructorId',authenticate,staff,c.deleteAssignment);
+router.get('/lab-checks',authenticate,c.labChecks); router.post('/lab-checks',authenticate,authorize(ROLES.ADMIN,ROLES.LAB_MANAGER),c.createLabCheck); router.patch('/lab-checks/:id',authenticate,authorize(ROLES.ADMIN,ROLES.LAB_MANAGER),c.updateLabCheck);
+router.get('/admin/accounts',authenticate,authorize(ROLES.ADMIN),c.accounts); router.get('/audit-log',authenticate,authorize(ROLES.ADMIN,ROLES.SCHEDULER),c.auditLog);
+module.exports=router;
