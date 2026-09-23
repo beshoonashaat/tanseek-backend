@@ -114,7 +114,8 @@ const getMyTimetable = asyncHandler(async (req, res) => {
      WHERE term_id = (
        SELECT id
        FROM academic_terms
-       WHERE is_active = true
+       WHERE state IN ('ACTIVE','PLANNING','READY_TO_SCHEDULE')
+       ORDER BY CASE WHEN state = 'ACTIVE' THEN 0 ELSE 1 END, starts_on DESC
        LIMIT 1
      )
      AND state = 'PUBLISHED'`

@@ -5,11 +5,12 @@ const ApiError = require('../utils/ApiError');
 
 async function listByStudent(studentId) {
   const res = await query(
-    `SELECT sse.*, s.code as section_code, s.kind as section_kind, c.code as course_code, c.title as course_title
+    `SELECT sse.*, s.code as section_code, sse.section_kind, c.code as course_code, c.title as course_title
      FROM student_section_enrollments sse
      JOIN sections s ON s.id = sse.section_id
      JOIN courses c ON c.id = sse.course_id
-     WHERE sse.student_id = $1
+     JOIN student_course_registrations scr ON scr.id = sse.registration_id
+     WHERE scr.student_id = $1
      ORDER BY sse.assigned_at DESC`,
     [studentId]
   );
@@ -18,7 +19,7 @@ async function listByStudent(studentId) {
 
 async function findById(id) {
   const res = await query(
-    `SELECT sse.*, s.code as section_code, s.kind as section_kind, c.code as course_code, c.title as course_title
+    `SELECT sse.*, s.code as section_code, sse.section_kind, c.code as course_code, c.title as course_title
      FROM student_section_enrollments sse
      JOIN sections s ON s.id = sse.section_id
      JOIN courses c ON c.id = sse.course_id
@@ -41,7 +42,8 @@ async function listBySection(sectionId) {
   const res = await query(
     `SELECT sse.*, st.full_name as student_name, st.university_id, st.email
      FROM student_section_enrollments sse
-     JOIN students st ON st.id = sse.student_id
+     JOIN student_course_registrations scr ON scr.id = sse.registration_id
+     JOIN students st ON st.id = scr.student_id
      WHERE sse.section_id = $1 AND sse.state = 'ACTIVE'
      ORDER BY st.full_name`,
     [sectionId]

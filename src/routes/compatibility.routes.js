@@ -10,5 +10,9 @@ router.get('/schedule/drafts/:draftId/allocations',authenticate,c.draftAllocatio
 router.get('/requirements',authenticate,c.listRequirements); router.post('/requirements',authenticate,staff,c.createRequirement); router.patch('/requirements/:id',authenticate,staff,c.updateRequirement); router.delete('/requirements/:id',authenticate,staff,c.deleteRequirement);
 router.get('/instructor-assignments',authenticate,c.assignments); router.post('/instructor-assignments',authenticate,staff,c.createAssignment); router.delete('/instructor-assignments/:sectionId/:requirementId/:instructorId',authenticate,staff,c.deleteAssignment);
 router.get('/lab-checks',authenticate,c.labChecks); router.post('/lab-checks',authenticate,authorize(ROLES.ADMIN,ROLES.LAB_MANAGER),c.createLabCheck); router.patch('/lab-checks/:id',authenticate,authorize(ROLES.ADMIN,ROLES.LAB_MANAGER),c.updateLabCheck);
+router.get('/lab-requirement-checks',authenticate,c.labChecks); router.post('/lab-requirement-checks',authenticate,authorize(ROLES.ADMIN,ROLES.LAB_MANAGER),c.createLabCheck); router.patch('/lab-requirement-checks/:id',authenticate,authorize(ROLES.ADMIN,ROLES.LAB_MANAGER),c.updateLabCheck);
+router.get('/course-registrations',authenticate,authorize(ROLES.STUDENT,ROLES.ADMIN,ROLES.REGISTRATION_OFFICER,ROLES.DEPARTMENT_COORDINATOR),c.courseRegistrations);
+router.get('/student-section-assignments',authenticate,authorize(ROLES.STUDENT,ROLES.ADMIN,ROLES.REGISTRATION_OFFICER,ROLES.DEPARTMENT_COORDINATOR),c.sectionAssignments);
 router.get('/admin/accounts',authenticate,authorize(ROLES.ADMIN),c.accounts); router.get('/audit-log',authenticate,authorize(ROLES.ADMIN,ROLES.SCHEDULER),c.auditLog);
+router.get('/admin/roles',authenticate,authorize(ROLES.ADMIN),c.roles);
 module.exports=router;

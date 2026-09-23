@@ -8,6 +8,7 @@ const requirementsRepo = require('../repositories/sessionRequirementsRepo');
 const sectionsRepo = require('../repositories/sectionsRepo');
 const accountsRepo = require('../repositories/accountsRepo');
 const auditRepo = require('../repositories/auditRepo');
+const rolesRepo = require('../repositories/rolesRepo');
 
 const masterData = asyncHandler(async (req, res) => {
   const termId = req.query.termId ? Number(req.query.termId) : null;
@@ -59,9 +60,20 @@ const createAssignment = asyncHandler(async (req, res) => { const b=req.body; if
 const deleteAssignment = asyncHandler(async (req,res)=>{const r=await query('DELETE FROM section_instructors WHERE section_id=$1 AND requirement_id=$2 AND instructor_id=$3 RETURNING *',[req.params.sectionId,req.params.requirementId,req.params.instructorId]);if(!r.rowCount)throw ApiError.notFound('Assignment not found.');return res.status(204).send();});
 
 const accounts = asyncHandler(async (req,res)=>ok(res,await accountsRepo.listAll({role:req.query.role,state:req.query.state,departmentId:req.query.departmentId})));
+const roles = asyncHandler(async (req,res)=>ok(res,await rolesRepo.list()));
 const auditLog = asyncHandler(async (req,res)=>ok(res,await auditRepo.listRecent(Math.min(Number(req.query.limit)||100,500))));
 const labChecks = asyncHandler(async (req,res)=>{const r=await query('SELECT * FROM lab_checks ORDER BY checked_at DESC');return ok(res,r.rows);});
 const createLabCheck = asyncHandler(async(req,res)=>{const b=req.body;if(!b.roomId||!b.status)throw ApiError.badRequest('roomId and status are required.');const r=await query('INSERT INTO lab_checks(room_id,checked_by,status,notes) VALUES($1,$2,$3,$4) RETURNING *',[b.roomId,req.user.id,b.status,b.notes||null]);return created(res,r.rows[0]);});
 const updateLabCheck = asyncHandler(async(req,res)=>{const r=await query('UPDATE lab_checks SET status=$2,notes=$3,checked_by=$4,checked_at=now() WHERE id=$1 RETURNING *',[req.params.id,req.body.status,req.body.notes||null,req.user.id]);if(!r.rowCount)throw ApiError.notFound('Lab check not found.');return ok(res,r.rows[0]);});
+const courseRegistrations = asyncHandler(async (req,res) => {
+  const repo = require('../repositories/studentCourseRegistrationsRepo');
+  if (!req.query.studentId) throw ApiError.badRequest('studentId query parameter is required.');
+  return ok(res, await repo.listByStudent(req.query.studentId));
+});
+const sectionAssignments = asyncHandler(async (req,res) => {
+  const repo = require('../repositories/studentSectionEnrollmentsRepo');
+  if (!req.query.studentId && !req.query.sectionId) throw ApiError.badRequest('studentId or sectionId query parameter is required.');
+  return ok(res, req.query.studentId ? await repo.listByStudent(req.query.studentId) : await repo.listBySection(req.query.sectionId));
+});
 
-module.exports={masterData,draftAllocations,listRequirements,createRequirement,updateRequirement,deleteRequirement,assignments,createAssignment,deleteAssignment,accounts,auditLog,labChecks,createLabCheck,updateLabCheck};
+module.exports={masterData,draftAllocations,listRequirements,createRequirement,updateRequirement,deleteRequirement,assignments,createAssignment,deleteAssignment,accounts,roles,auditLog,labChecks,createLabCheck,updateLabCheck,courseRegistrations,sectionAssignments};
